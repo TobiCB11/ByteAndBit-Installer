@@ -15,7 +15,12 @@ buildNumber.properties
 *.raaar
 # Compiled class files
 *.class
-
+platforms/installer-runtime
+platforms/ByteAndBit-Installer-1.0.dmg
+platforms/ByteAndBit-Installer-1.0.exe
+platforms/ByteAndBit-Installer-1.0.deb
+platforms/ByteAndBit-Installer-1.0.rpm
+platforms/jar/*
 # Log files
 *.log
 

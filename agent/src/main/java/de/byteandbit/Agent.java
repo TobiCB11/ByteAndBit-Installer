@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.byteandbit.data.GameInstance;
 
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.instrument.Instrumentation;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 public class Agent {
@@ -74,18 +74,11 @@ public class Agent {
     public static void post(int port, GameInstance gameInstance) {
         try {
             String json = new ObjectMapper().writeValueAsString(gameInstance);
-            URL url = new URL("http://localhost:" + port + "/");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = json.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
+            try (Socket socket = new Socket("localhost", port);
+                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+                out.print(json);
+                out.flush();
             }
-            int responseCode = conn.getResponseCode();
-            conn.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }

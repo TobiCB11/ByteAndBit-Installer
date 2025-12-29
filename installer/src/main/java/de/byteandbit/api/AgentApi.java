@@ -1,12 +1,16 @@
 package de.byteandbit.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.tools.attach.*;
 import de.byteandbit.data.GameInstance;
-import io.javalin.Javalin;
 import lombok.Getter;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +26,8 @@ public class AgentApi implements AutoCloseable {
     private final HashSet<Integer> attachedPids = new HashSet<>();
     @Getter
     private final List<GameInstance> gameInstances = new ArrayList<>();
-    private Javalin agentCommunicationServer;
+    private ServerSocket agentCommunicationServer;
+    private boolean running = true;
     private int port;
 
     public AgentApi(int port) throws IOException {
@@ -72,18 +77,39 @@ public class AgentApi implements AutoCloseable {
     }
 
     private void start_agent_communication() {
-        agentCommunicationServer = Javalin.create().start(port);
-        agentCommunicationServer.post("/", ctx -> {
+        new Thread(() -> {
             try {
-                GameInstance obj = ctx.bodyAsClass(GameInstance.class);
-                if (gameInstances.stream().noneMatch(gi -> gi.getGameDir().equals(obj.getGameDir()))) {
-                    gameInstances.add(obj);
+                agentCommunicationServer = new ServerSocket(port);
+                ObjectMapper mapper = new ObjectMapper();
+
+                while (running) {
+                    try (Socket socket = agentCommunicationServer.accept();
+                         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                        StringBuilder payload = new StringBuilder();
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            payload.append(line);
+                        }
+
+                        if (payload.length() > 0) {
+                            GameInstance obj = mapper.readValue(payload.toString(), GameInstance.class);
+                            if (gameInstances.stream().noneMatch(gi -> gi.getGameDir().equals(obj.getGameDir()))) {
+                                gameInstances.add(obj);
+                            }
+                        }
+                    } catch (IOException e) {
+                        if (running) {
+                            System.err.println("Error while receiving game instance: " + e.getMessage());
+                        }
+                    }
                 }
-            } catch (Exception e) {
-                System.err.println("Failed to parse game instance: " + e.getMessage());
-                e.printStackTrace();
+            } catch (IOException e) {
+                if (running) {
+                    System.err.println("Could not start agent communication server: " + e.getMessage());
+                }
             }
-        });
+        }).start();
     }
 
 
@@ -111,8 +137,13 @@ public class AgentApi implements AutoCloseable {
      */
     @Override
     public void close() {
+        running = false;
         if (agentCommunicationServer != null) {
-            agentCommunicationServer.close();
+            try {
+                agentCommunicationServer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

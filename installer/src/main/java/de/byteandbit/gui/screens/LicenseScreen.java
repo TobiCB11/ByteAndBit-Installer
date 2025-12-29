@@ -20,6 +20,7 @@ public class LicenseScreen implements Screen {
     private JPanel panel;
     private JTextField licenseField;
     private JButton verifyButton;
+    private static final String license_prefix="LION-";
 
     @Override
     public JPanel getScreen() {
@@ -38,6 +39,7 @@ public class LicenseScreen implements Screen {
         // License text field
         licenseField = new JTextField(30);
         licenseField.setDocument(new LicenseDocument());
+        licenseField.setText(license_prefix);
         licenseField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
         licenseField.setHorizontalAlignment(JTextField.LEFT);
         gbc.gridy = 1;
@@ -79,8 +81,7 @@ public class LicenseScreen implements Screen {
 
     @Override
     public void onOpen() {
-        // TODO: check if license file is in directory with the installer. If so, load and verify license with a small animation.
-        // check if file ending with .raaar exists in current directory
+        // check if license file is in directory with the installer. If so, load and verify license with a small animation.
         new Thread(() -> {
             File[] files = new File(".").listFiles((dir, name) -> name.endsWith(".raaar"));
             if (files != null && files.length > 0) {
@@ -111,22 +112,39 @@ public class LicenseScreen implements Screen {
     }
 
     /**
-     * Sanitize the license input field to be of form XXXX-XXXXX-XXXX-XXXXX-XXXXXXX
+     * Sanitize the license input field to start with license_prefix and truncate to MAX_LENGTH.
      */
     private static class LicenseDocument extends PlainDocument {
-        private static final int MAX_LENGTH = 30;
-        private static final int[] DASH_POSITIONS = {4, 10, 16, 22};
+        private static final int MAX_LENGTH = 35;
 
         @Override
         public void insertString(int offset, String str, AttributeSet attr)
                 throws BadLocationException {
-            if (str == null) return;
+            if (str == null || str.isEmpty()) {
+                return;
+            }
+
             String current = getText(0, getLength());
-            String combined =
-                    new StringBuilder(current)
-                            .insert(offset, str)
-                            .toString();
+            String combined;
+
+            if (current.isEmpty()) {
+                if (!str.startsWith(license_prefix)) {
+                    str = license_prefix + str;
+                }
+                combined = str;
+            } else {
+                combined = new StringBuilder(current).insert(offset, str).toString();
+                if (!combined.startsWith(license_prefix)) {
+                    return;
+                }
+            }
+
+            if (combined.length() > MAX_LENGTH) {
+                combined = combined.substring(0, MAX_LENGTH);
+            }
+
             String formatted = format(combined);
+
             super.remove(0, getLength());
             super.insertString(0, formatted, attr);
         }
@@ -135,10 +153,19 @@ public class LicenseScreen implements Screen {
         public void remove(int offset, int length) throws BadLocationException {
             String current = getText(0, getLength());
 
-            String combined =
-                    new StringBuilder(current)
-                            .delete(offset, offset + length)
-                            .toString();
+            // Ensure we never remove the prefix
+            if (offset < license_prefix.length()) {
+                if (offset + length <= license_prefix.length()) {
+                    return;
+                } else {
+                    length = offset + length - license_prefix.length();
+                    offset = license_prefix.length();
+                }
+            }
+
+            String combined = new StringBuilder(current)
+                    .delete(offset, offset + length)
+                    .toString();
 
             String formatted = format(combined);
 
@@ -146,28 +173,11 @@ public class LicenseScreen implements Screen {
             super.insertString(0, formatted, null);
         }
 
-        private String format(String input) {
-            String clean = input
-                    .toUpperCase()
-                    .replaceAll("[^A-Z0-9]", "");
-
-            StringBuilder sb = new StringBuilder();
-            int cleanIndex = 0;
-            for (int i = 0; i < MAX_LENGTH && cleanIndex < clean.length(); i++) {
-                if (isDashPosition(i)) {
-                    sb.append('-');
-                } else {
-                    sb.append(clean.charAt(cleanIndex++));
-                }
+        private String format(String s) {
+            if(s.startsWith(license_prefix + license_prefix)){
+                s = s.substring(license_prefix.length());
             }
-            return sb.toString();
-        }
-
-        private boolean isDashPosition(int index) {
-            for (int pos : DASH_POSITIONS) {
-                if (pos == index) return true;
-            }
-            return false;
+            return s.toUpperCase().replaceAll("[^A-Z0-9-]", "");
         }
     }
 }
