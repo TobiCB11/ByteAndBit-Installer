@@ -30,5 +30,6 @@
   "INSTALLATION_COMPLETE": "Installation abgeschlossen!",
   "RESTART_GAME": "Bitte starte das Spiel neu. Du kannst dieses Fenster jetzt schließen.",
   "FORGE_REQUIRED": "Diese Instanz hat kein Forge installiert.",
-  "DOWNLOADING_LICENSE": "Lizenzdatei wird heruntergeladen..."
+  "DOWNLOADING_LICENSE": "Lizenzdatei wird heruntergeladen...",
+  "INSTALLATION_FAILED_ERROR": "Installation fehlgeschlagen. Bitte kontaktiere den Support."
 }

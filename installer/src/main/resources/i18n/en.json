@@ -30,5 +30,6 @@
   "INSTALLATION_COMPLETE": "Installation complete!",
   "RESTART_GAME": "Please restart your game. You may now close this window.",
   "FORGE_REQUIRED": "This instance has no Forge installed.",
-  "DOWNLOADING_LICENSE": "Downloading license file..."
+  "DOWNLOADING_LICENSE": "Downloading license file...",
+  "INSTALLATION_FAILED_ERROR": "Installation failed. Please contact Support."
 }

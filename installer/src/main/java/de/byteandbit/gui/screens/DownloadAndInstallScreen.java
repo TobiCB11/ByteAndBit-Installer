@@ -4,6 +4,7 @@ import de.byteandbit.Constants;
 import de.byteandbit.Util;
 import de.byteandbit.api.ProductApi;
 import de.byteandbit.data.GameInstance;
+import de.byteandbit.gui.Gui;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -128,7 +129,8 @@ public class DownloadAndInstallScreen implements Screen {
                 setMajorStatus(uiText("INSTALLATION_COMPLETE"));
                 setMinorStatus(uiText("RESTART_GAME"));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
+                Gui.getInstance().errorAndExit(uiText("INSTALLATION_FAILED_ERROR"), e);
             }
         }).start();
     }
