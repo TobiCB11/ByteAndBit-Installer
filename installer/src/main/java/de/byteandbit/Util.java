@@ -62,6 +62,7 @@ public class Util {
             throw e;
         }
     }
+
     /**
      * Downloads a file from the given URL to the specified folder.
      * The filename is derived from the URL.
@@ -160,9 +161,11 @@ public class Util {
     public static String uiText(String key) {
         return TranslationApi.getInstance().get(key);
     }
+
     public static <T> Consumer<T> uiThrottle(Consumer<T> delegate) {
         return throttle(delegate, 300);
     }
+
     public static <T> Consumer<T> throttle(Consumer<T> delegate, long intervalMillis) {
         AtomicLong lastRun = new AtomicLong(0);
 
@@ -175,5 +178,15 @@ public class Util {
                 delegate.accept(value);
             }
         };
+    }
+
+    public static boolean tryDelete(File f) {
+        boolean wasDeleted = false;
+        try {
+            f.delete();
+            wasDeleted = true;
+        } catch (Exception ignored) {
+        }
+        return wasDeleted;
     }
 }

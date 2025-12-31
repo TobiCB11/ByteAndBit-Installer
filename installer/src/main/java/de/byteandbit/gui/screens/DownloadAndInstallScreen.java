@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import static de.byteandbit.Util.uiText;
-import static de.byteandbit.Util.ui_wait;
+import static de.byteandbit.Util.*;
 
 
 public class DownloadAndInstallScreen implements Screen {
@@ -120,7 +119,7 @@ public class DownloadAndInstallScreen implements Screen {
                 setMinorStatus("0%");
                 ui_wait();
                 File configFolder = new File(selectedInstance.getGameDir(), "config");
-                Util.downloadFileToFolder(ProductApi.getInstance().getLicenseDownloadUrl(), configFolder, Util.uiThrottle((percent)->{
+                Util.downloadFileToFolder(ProductApi.getInstance().getLicenseDownloadUrl(), configFolder, Util.uiThrottle((percent) -> {
                     setMinorStatus(percent + "%");
                 }));
 
@@ -133,18 +132,21 @@ public class DownloadAndInstallScreen implements Screen {
                     if (getCoreName(f.getName()).equals(coreName)) {
                         toRemove.add(f.getAbsolutePath());
                         setMinorStatus(String.format(uiText("FOUND_OLD_VERSION"), f.getName()));
+                        if (!tryDelete(f)) toRemove.add(f.getAbsolutePath());
                         ui_wait();
                         ui_wait();
                     }
                 }
-                if(!toRemove.isEmpty()){
+                if (!toRemove.isEmpty()) {
                     // add to shutdown remove hook
                     setMinorStatus("");
                     setMajorStatus(uiText("CLEANUP_OLD_VERSIONS"));
                     ui_wait();
-                    try{
+
+                    try {
                         AgentApi.attach_addFileDeleteHooks(selectedInstance.getPid(), toRemove);
-                    }catch (Exception ignored){} // this will always report that it didnt manage to attach
+                    } catch (Exception ignored) {
+                    } // this will always report that it didnt manage to attach for some reason.
                 }
                 setMajorStatus(uiText("INSTALLATION_COMPLETE"));
                 setMinorStatus(uiText("RESTART_GAME"));
