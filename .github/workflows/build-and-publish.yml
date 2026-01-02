@@ -58,7 +58,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           echo 'HERE=${BASH_SOURCE%/*}' >> package/launch.sh
-          echo '"$HERE/installer-runtime/bin/java" -jar "$HERE/installer.jar" "$@"' >> package/launch.sh
+          echo '"$HERE/installer-runtime/bin/java" -jar "$HERE/installer.jar" "$@" > /dev/null 2>&1 &' >> package/launch.sh
           chmod +x package/launch.sh
       - name: Create Launch Script (windows)
         shell: bash
@@ -66,7 +66,7 @@ jobs:
         run: |
           echo '@echo off' > package/launch.cmd
           echo 'SET "HERE=%~dp0"' >> package/launch.cmd
-          echo '"%HERE%installer-runtime\bin\java.exe" -jar "%HERE%installer.jar" %*' >> package/launch.cmd
+          echo 'start "" "%HERE%installer-runtime\bin\javaw.exe" -jar "%HERE%installer.jar" %*' >> package/launch.cmd
       - name: Download warp-packer (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
