@@ -84,15 +84,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           ./warp-packer.exe --arch windows-x64 --input_dir package --exec launch.cmd --output installer.exe
-      - name: Upload Artifacts
+      - name: Upload OS-Specific Artifact
         uses: actions/upload-artifact@v4
         with:
           name: installer
           path: |
             *.bin
             *.exe
-            package/installer.jar
-
+            ${{ matrix.os == 'ubuntu-latest' && 'package/installer.jar' || '' }}
   release:
     needs: build
     runs-on: ubuntu-latest
