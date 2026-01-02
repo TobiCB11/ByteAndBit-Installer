@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.byteandbit.Constants;
 import de.byteandbit.data.GameInstance;
 import de.byteandbit.data.License;
-import de.byteandbit.data.Product;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,13 +20,8 @@ public class ProductApi {
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
     private static ProductApi INSTANCE;
-    public Product[] products;
     HashMap<String, DownloadResponse> downloadCache = new HashMap<>();
     private License license = null;
-
-    private ProductApi() {
-        this.products = new Product[0];
-    }
 
     public static ProductApi getInstance() {
         if (INSTANCE == null) INSTANCE = new ProductApi();
@@ -95,8 +89,7 @@ public class ProductApi {
     }
 
     public String getLicenseControlPanelUrl() {
-        String s = String.format(Constants.LICENSE_CONTROL_PANEL_URL, license.getId());
-        return s;
+        return String.format(Constants.LICENSE_CONTROL_PANEL_URL, license.getId());
     }
 
     public boolean isLegacyLicense() {
@@ -108,7 +101,7 @@ public class ProductApi {
     public static class DownloadResponse {
         public boolean success;
 
-        @com.fasterxml.jackson.annotation.JsonProperty(required = false)
-        public String link = "no-link-provided"; // Default value if missing
+        @com.fasterxml.jackson.annotation.JsonProperty()
+        public String link = "no-link-provided";
     }
 }
