@@ -38,6 +38,7 @@ jobs:
       - name: Prepare Package Directory
         run: |
           mkdir -p package
+          mkdir -p output
           cp installer/target/installer-1.0-SNAPSHOT.jar package/installer.jar
 
       - name: Create Runtime Image (jlink)
@@ -78,19 +79,19 @@ jobs:
       - name: Package Application (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          ./warp-packer --arch linux-x64 --input_dir package --exec launch.sh --output installer.bin
-          chmod +x installer.bin
+          ./warp-packer --arch linux-x64 --input_dir package --exec launch.sh --output output/installer.bin
+          chmod +x output/installer.bin
       - name: Package Application (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          ./warp-packer.exe --arch windows-x64 --input_dir package --exec launch.cmd --output installer.exe
+          ./warp-packer.exe --arch windows-x64 --input_dir package --exec launch.cmd --output output/installer.exe
       - name: Upload OS-Specific Artifact
         uses: actions/upload-artifact@v4
         with:
           name: installer
           path: |
-            *.bin
-            *.exe
+            output/*.bin
+            output/*.exe
             ${{ matrix.os == 'ubuntu-latest' && 'package/installer.jar' || '' }}
   release:
     needs: build
